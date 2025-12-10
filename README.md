@@ -62,6 +62,40 @@ Inter-process communication and synchronization:
 
 **Files:** `common.h`, `sender.c`, `sender2.c`, `reciever.c`, `reciever2.c`, `reciever3.c`
 
+### Lab 8 - Socket Programming
+Network communication using sockets and inter-process communication:
+- Socket creation and configuration
+- TCP (stream sockets) and UDP (datagram sockets) protocols
+- Client-server model implementation
+- Network addressing using IP addresses and ports
+- Data transmission and reception over networks
+- SIP protocol implementation using UDP sockets
+
+**Key Concepts:**
+
+**TCP Server Steps:**
+1. Socket creation with `socket()`
+2. Binding socket to address with `bind()`
+3. Listening for connections with `listen()`
+4. Accepting connections with `accept()`
+5. Reading/writing data with `read()`, `write()`
+
+**TCP Client Steps:**
+1. Socket creation with `socket()`
+2. Connecting to server with `connect()`
+3. Reading/writing data with `read()`, `write()`
+
+**UDP Operations:**
+- Server uses `recvfrom()` for receiving datagrams
+- Client/Server uses `sendto()` for sending datagrams
+- No listening or accepting required (connectionless)
+
+**Network Tools:**
+- `netstat -lnup` - monitor socket connections
+- `tcpdump -i eth0 udp` - trace UDP packet flow
+
+**Files:** UDP server and client implementations with exercises for local and inter-machine communication
+
 ### Project - Final Assignment
 Complete application implementing:
 - Multiple processes/threads
