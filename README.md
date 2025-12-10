@@ -1,6 +1,6 @@
 # POKS Lab - Operating Systems Course
 
-This repository contains lab exercises and projects from the POKS (Porazdeljeni Operacijski Sistemi / Distributed Operating Systems) course.
+This repository contains lab exercises and projects from the POKS (Programska Oprema Komunikacijskih Sistemov) course.
 
 ## Structure
 
