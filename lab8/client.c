@@ -38,5 +38,21 @@ int main(int argc, char *argv[]) {
     }
     bcopy((char *)hp->h_addr, (char *)&server.sin_addr, hp->h_length);
     server.sin_port = htons(atoi(argv[2]));
+    length = sizeof(struct sockaddr_in);
+
+    while(1) {
+
+        printf("Vnesi sporočilo: ");
+        bzero(buf, sizeof(buf));
+        if(fgets(buf, sizeof(buf), stdin) == NULL) {
+            break;
+        }
+
+        printf("Pošiljam sporočilo: %s\n", buf);
+        n = sendto(sock, buf, strlen(buf) + 1, 0, (const struct sockaddr *)&server, length);
+        
+
+    }
+
 }
 
