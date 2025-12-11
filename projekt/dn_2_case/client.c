@@ -87,8 +87,10 @@ int main(int argc, char *argv[]) {
         
         if(getInd == 1){
 
-            char *uuid_part = strchr(buf, '-') + 1;
-            char *crc_part = strrchr(buf, ' ') + 1;
+            char *uuid_part = strchr(buf, '-') + 1; // pointer premaknemo na mesto kjer je najden "-" + 1 
+                                                    // in s tem smo na prvem mestu UUID-ja
+            char *crc_part = strrchr(buf, ' ') + 1; // pointer premaknemo na mesto kjer je najden zadnji presledek + 1
+                                                    // in s tem smo na prvem mestu CRC kode
 
             // printf("uuid del: %s\n", uuid_part);
             // printf("crc del: %s\n", crc_part);
