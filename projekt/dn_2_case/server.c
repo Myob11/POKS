@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
    fromlen = sizeof(struct sockaddr_in);
 
    while (1) {
+
        n = recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &fromlen);
        if(n < 0) error("recvfrom");
 
@@ -101,22 +102,14 @@ int main(int argc, char *argv[]) {
             bzero(buf, 1024);
             n = sendto(sock, response, strlen(response) + 1, 0,
               (struct sockaddr *)&from, fromlen);
+            if(n < 0) error("sendto uuid");
+            printf("Sent %s\n", response);
             free(uuid);
         }
-           
 
-       printf("Please enter the message: ");
-       bzero(buf, 1024);
-       if (fgets(buf, 1024, stdin) == NULL) {
+       if(buf[0] == 'X'){
            break;
-       }
-
-       printf("Sent %s\n", buf);
-       n = sendto(sock, buf, strlen(buf) + 1, 0,
-                  (struct sockaddr *)&from, fromlen);
-       if(n < 0) error("sendto");
-       if(buf[0] == 'X')
-           break;
+        }
    }
    
    close(sock);
