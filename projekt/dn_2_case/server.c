@@ -106,10 +106,14 @@ int main(int argc, char *argv[]) {
             printf("Sent %s\n", response);
             free(uuid);
         }
-
-       if(buf[0] == 'X'){
-           break;
+        else {
+            char response[1024] = "NEPREPOZNAVEN UKAZ";
+            n = sendto(sock, response, strlen(response) + 1, 0,
+              (struct sockaddr *)&from, fromlen);
+            if(n < 0) error("sendto neprepoznan ukaz");
+            printf("Sent %s: %s\n", response, buf);
         }
+        
    }
    
    close(sock);
