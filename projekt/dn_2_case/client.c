@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     socklen_t fromlen;
     char buf[1024];
 
-    if (argc != 3) {
+    if (argc != 2) {
         printf("Nekaj je narobe\n");
         exit(1);
     }
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
         error("Nepoznan host\n");
     }
     bcopy((char *)hp->h_addr, (char *)&server.sin_addr, hp->h_length);
-    server.sin_port = htons(atoi(argv[2]));
+    server.sin_port = htons(5069); // port
     length = sizeof(struct sockaddr_in);
 
     while(1) {
