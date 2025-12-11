@@ -1,4 +1,0 @@
-# Exclude asynchronous client and server from dn_2_case
-projekt/dn_2_case/asihron_client.c
-projekt/dn_2_case/asinhron_server.c
-
