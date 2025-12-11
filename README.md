@@ -96,14 +96,30 @@ Network communication using sockets and inter-process communication:
 
 **Files:** UDP server and client implementations with exercises for local and inter-machine communication
 
-### Project - Final Assignment
-Complete application implementing:
-- Multiple processes/threads
-- Advanced synchronization
-- Resource management
-- Real-world problem solving
+### Project - Case Studies
+Three comprehensive case studies combining concepts from all labs:
 
-**Files:** `Projekt_1.c`, `Projekt_2.c`
+**Case 1 - Multi-threaded Application**
+- Implementation of advanced threading concepts
+- Resource management and synchronization
+- Thread coordination and communication
+
+**Files:** `Projekt_1.c`, `main`, `projekt1`
+
+**Case 2 - Socket-based Client-Server**
+- TCP/IP socket communication between client and server
+- Synchronous and asynchronous implementations
+- Network protocol handling
+- Both synchronous (`client.c`, `server.c`) and asynchronous variants included
+
+**Files:** `client.c`, `server.c`, `asihron_client.c`, `asinhron_server.c` (async versions)
+
+**Case 3 - Advanced Integration**
+- Combined systems integrating multiple OS concepts
+- Production-level problem solving
+- Real-world application scenarios
+
+**Files:** `dn_3-case_solving.pdf`
 
 ## Compilation
 
