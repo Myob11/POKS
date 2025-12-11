@@ -46,27 +46,23 @@ int main(int argc, char *argv[]){
         
         printf("Čakam na sporočilo...\n");
         n = recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&from, &fromlen);
-        
         if (n < 0) {
             error("recvfrom\n");
         }
 
         printf("Prejeto sporočilo: %s\n", buf);
-
         if(buf[0] == 'X'){
             break;
         }   
 
         printf("Pošiljam sporočilo: \n");
         bzero(buf, sizeof(buf));
-        
         if(fgets(buf, sizeof(buf), stdin) == NULL) {
             break;
         }
 
         printf("Pošiljam: %s\n", buf);
         n = sendto(sock, buf, strlen(buf) + 1, 0, (struct sockaddr *)&from, fromlen);
-        
         if (n < 0) {
             error("sendto\n");
         }
