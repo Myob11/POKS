@@ -50,9 +50,23 @@ int main(int argc, char *argv[]) {
 
         printf("Pošiljam sporočilo: %s\n", buf);
         n = sendto(sock, buf, strlen(buf) + 1, 0, (const struct sockaddr *)&server, length);
-        
-
+        if(n < 0){
+            error("sendto\n");  
+        }
+        if(buf[0] == 'X'){
+            break;
+        }
+        fromlen = sizeof(struct sockaddr_in);
+        n = recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&from, &fromlen);
+        if(n < 0){
+            error("recvfrom\n");
+        }
+        printf("Prejeto sporočilo: %s\n", buf);
+        if(buf[0] == 'X'){
+            break;
+        }
     }
-
+    close(sock);
+    return 0;          
 }
 
