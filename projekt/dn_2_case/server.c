@@ -75,14 +75,21 @@ int main(int argc, char *argv[]) {
 
    fromlen = sizeof(struct sockaddr_in);
 
+   printf("-----------------waiting for data on port UDP 5069 -----------------\n");
+
    while (1) {
 
        n = recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &fromlen);
        if(n < 0) error("recvfrom");
 
-       printf("Received a datagram: %s\n", buf);
-       if(buf[0] == 'X')
-           break;
+        printf("Received a datagram: %s\n", buf);
+
+        if(buf[0] == 'X'){
+            printf("Connection closed by client.\n");
+            printf("------------------------------ closing -----------------------------\n");
+            break;
+        }
+                
         
         // dodani del za CRC32 preverjanje in odziv na GET
         if(strncmp(buf, "GET", 3) == 0 && (buf[3] == '\0' || buf[3] == '\n')) {
@@ -100,6 +107,7 @@ int main(int argc, char *argv[]) {
               (struct sockaddr *)&from, fromlen);
             if(n < 0) error("sendto uuid");
             printf("Sent %s\n", response);
+            printf("\n");
             free(uuid);
 
             char crc_char[9];
@@ -111,22 +119,16 @@ int main(int argc, char *argv[]) {
                 n = recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &fromlen);
                 if(n < 0) error("recvfrom");
                 printf("Received a datagram: %s\n", buf);
+                printf("\n");
 
-                if(buf[0] == 'X'){
-                    break;
-                }
-
-                printf("%d\n", strncmp(buf, "PREJETO", 7));
-                
                 if(strncmp(buf, "PREJETO", 7) == 0){
                     
                     char *crc_part = strchr(buf, ' ') + 1; // postavimo se na mesto kjer je uuid v replyu
-
-                    printf("%s %s\n", crc_part, crc_char);
                     
                     if(strcmp(crc_part, crc_char) == 0){
                         serialCounter++;
                         printf("CRC32 preverjanje uspešno. Števec: %d\n", serialCounter);
+                        printf("\n");
                         break;
                     }
                     else{
@@ -138,6 +140,7 @@ int main(int argc, char *argv[]) {
                         (struct sockaddr *)&from, fromlen);
                         if(n < 0) error("sendto uuid");
                         printf("Sent %s\n", odgovor);
+                        printf("\n");
                     }
 
                 }
@@ -150,7 +153,7 @@ int main(int argc, char *argv[]) {
             n = sendto(sock, response, strlen(response) + 1, 0,
               (struct sockaddr *)&from, fromlen);
             if(n < 0) error("sendto neprepoznan ukaz");
-            printf("Sent %s: %s\n", response, buf);
+            printf("Sent %s\n", response);
         }
         
    }

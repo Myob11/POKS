@@ -54,27 +54,32 @@ int main(int argc, char *argv[]) {
     server.sin_port = htons(5069); // port
     length = sizeof(struct sockaddr_in);
 
+    printf("----------------- waiting for user input -----------------\n");
+    printf("\n");
+
     while(1) {
 
         int getInd = 0;
 
         // pošlji sporočilo
         printf("Vnesi sporočilo: ");
+        
         bzero(buf, sizeof(buf));
         if(fgets(buf, sizeof(buf), stdin) == NULL) {
             break;
         }
         if(strncmp(buf, "GET", 3) == 0 && (buf[3] == '\0' || buf[3] == '\n')) {
             getInd = 1;
-            printf("zahtevali smo UUID\n");
+            printf("\nzahtevali smo UUID\n");
         }
 
-        printf("Pošiljam sporočilo: %s\n", buf);
+        printf("\nPošiljam sporočilo: %s\n", buf);
         n = sendto(sock, buf, strlen(buf) + 1, 0, (const struct sockaddr *)&server, length);
         if(n < 0){
             error("sendto\n");  
         }
         if(buf[0] == 'X'){
+            printf("------------------------- closing ------------------------\n");
             break;
         }
 
@@ -104,7 +109,7 @@ int main(int argc, char *argv[]) {
             if(calculated_crc == received_crc) {
             printf("CRC koda SE ujema\n");
             serialCounter++;
-            printf("Zaporedna številka zahteve: %d\n", serialCounter);
+            printf("\nZaporedna številka zahteve: %d\n", serialCounter);
             } 
             else {
             printf("CRC koda SE NE ujema: pričakovana %08X, prejeta %08X\n", calculated_crc, received_crc);
@@ -114,14 +119,19 @@ int main(int argc, char *argv[]) {
             bzero(buf, sizeof(buf));
             sprintf(buf, "PREJETO %08X", calculated_crc);
 
-            printf("Pošiljam sporočilo: %s\n", buf);
+            printf("\nPošiljam sporočilo: %s\n", buf);
+            printf("\n");
             n = sendto(sock, buf, strlen(buf) + 1, 0, (const struct sockaddr *)&server, length);
+            bzero(buf, sizeof(buf));
+            continue;
+
             if(n < 0){
                 error("sendto\n");  
             }
         }
 
         printf("Prejeto sporočilo: %s\n", buf);
+        printf("\n");
 
         if(buf[0] == 'X'){
             break;
