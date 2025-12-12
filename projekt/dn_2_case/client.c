@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
         if(fgets(buf, sizeof(buf), stdin) == NULL) {
             break;
         }
-        if(strncmp(buf, "GET", 3) == 0 || strncmp(buf, "GET\n", 4) == 0) {
+        if(strncmp(buf, "GET", 3) == 0 && (buf[3] == '\0' || buf[3] == '\n')) {
             getInd = 1;
             printf("zahtevali smo UUID\n");
         }
@@ -108,6 +108,16 @@ int main(int argc, char *argv[]) {
             } 
             else {
             printf("CRC koda SE NE ujema: pričakovana %08X, prejeta %08X\n", calculated_crc, received_crc);
+            }
+
+            // pošlji potrditev PREJETO + crc del
+            bzero(buf, sizeof(buf));
+            sprintf(buf, "PREJETO %08X", calculated_crc);
+
+            printf("Pošiljam sporočilo: %s\n", buf);
+            n = sendto(sock, buf, strlen(buf) + 1, 0, (const struct sockaddr *)&server, length);
+            if(n < 0){
+                error("sendto\n");  
             }
         }
 

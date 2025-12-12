@@ -53,12 +53,12 @@ void error(const char *msg)
 
 int main(int argc, char *argv[]) {
 
-   srand(time(NULL));
-   int sock, length, n;
-   struct sockaddr_in server, from;
-   socklen_t fromlen;
-   char buf[1024];
-
+    srand(time(NULL));
+    int sock, length, n;
+    struct sockaddr_in server, from;
+    socklen_t fromlen;
+    char buf[1024];
+    int serialCounter = 0;
    
    sock = socket(AF_INET, SOCK_DGRAM, 0);  /* create new socket */
 
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
            break;
         
         // dodani del za CRC32 preverjanje in odziv na GET
-        if(strncmp(buf, "GET", 3) == 0) {
+        if(strncmp(buf, "GET", 3) == 0 && (buf[3] == '\0' || buf[3] == '\n')) {
             static unsigned int seq_num = 0;
             char *uuid = genUUID();
             char response[1024];
@@ -101,6 +101,49 @@ int main(int argc, char *argv[]) {
             if(n < 0) error("sendto uuid");
             printf("Sent %s\n", response);
             free(uuid);
+
+            char crc_char[9];
+            sprintf(crc_char, "%08X", crc);
+            
+
+            while(1){
+                
+                n = recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &fromlen);
+                if(n < 0) error("recvfrom");
+                printf("Received a datagram: %s\n", buf);
+
+                if(buf[0] == 'X'){
+                    break;
+                }
+
+                printf("%d\n", strncmp(buf, "PREJETO", 7));
+                
+                if(strncmp(buf, "PREJETO", 7) == 0){
+                    
+                    char *crc_part = strchr(buf, ' ') + 1; // postavimo se na mesto kjer je uuid v replyu
+
+                    printf("%s %s\n", crc_part, crc_char);
+                    
+                    if(strcmp(crc_part, crc_char) == 0){
+                        serialCounter++;
+                        printf("CRC32 preverjanje uspešno. Števec: %d\n", serialCounter);
+                        break;
+                    }
+                    else{
+                        printf("CRC32 preverjanje neuspešno\n");
+                        bzero(buf, 1024);
+                        char odgovor[1024];
+                        sprintf(odgovor, "Napacna CRC koda: %s", crc_part);
+                        n = sendto(sock, odgovor, strlen(odgovor) + 1, 0,
+                        (struct sockaddr *)&from, fromlen);
+                        if(n < 0) error("sendto uuid");
+                        printf("Sent %s\n", odgovor);
+                    }
+
+                }
+        
+
+            }
         }
         else {
             char response[1024] = "NEPREPOZNAVEN UKAZ";
