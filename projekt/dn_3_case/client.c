@@ -144,7 +144,6 @@ int main(int argc , char *argv[]) {
         printf("Prejeto sporočilo: %s\n\n", buf);
 
     }
-
 	
 	close(sock);
 	return 0;
