@@ -7,7 +7,7 @@
 #include <pthread.h> //for threading , link with lpthread
 #include <time.h>
 #include <stdlib.h>
-#include <uuid/uuid.h>
+
 
 //the thread function
 void *connection_handler(void *);

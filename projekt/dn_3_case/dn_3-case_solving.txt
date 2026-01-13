@@ -1,0 +1,92 @@
+Fakulteta za elektrotehniko
+
+Laboratorij za telekomunikacije
+
+Ime in priimek:
+
+Datum:
+
+Reševanje problema: Multithread Socket - generator serijskih številk
+Namen projekta je:
+•
+
+Postaviti socket strežnik za generator serijskih števik
+
+Implementirajte univerzalni unikatni identifikator, ki podpira več odjemalcev
+Postavite strežnik po navodilih iz vaje socket, ki za vsako povezavo odjemalca ustvari svojo nit
+na strežniku. Osnutek kode za strežnik in client sem vam pripravil na:
+https://www.dropbox.com/sh/rub9ty1pe2uw5zs/AABl8fi6-cRrzN3tP4ekbwDoa?dl=0.
+Kodo prevedete z ukazom:
+gcc server.c -o server -luuid
+gcc client.c -o client -luuid
+In poženete z ukazom (port in IP sta zapečena v kodi in ju ni potrebno navajati):
+./server
+./client
+V kodo za server vstavite kodo iz drugega dela projekta, t.j. strežnik naj sledi naslednjim
+navodilom.
+•
+
+Na prejeto sporočilo »GET« naj odgovori s zaporedno številko in serijsko številko.
+Serijski številki dodajte presledek in CRC32 kodo zaporedne in serijske številke
+(uporabite
+kodo
+iz
+1.
+dela
+reševanja
+problema).
+Na primer: 00000001-xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx 86E0E903
+
+•
+
+Odjemalec bo na to sporočilo odgovoril s nekim tekstom, na primer:
+»PREJETO D5A07B2F«, torej TEXT in CRC32 koda teksta. Vaš strežnik mora
+obravnavati dve možnosti:
+
+•
+
+o
+
+CRC32 koda spročila je pravilna: v tem primeru, si povečate števec serijskih
+številk.
+
+o
+
+CRC32 koda sporočila ni pravilna: odgovorite s sporočilom »NAPAKA
+4900B4DB«. Števca serijskih številk v tem primeru ne povečate.
+
+Na kakršnokoli drugo sporočilo odjemalca naj strežnik odgovori s sporočilom
+»NEPREPOZNAVEN UKAZ«.
+
+Pri tem tem naj, če je ena nit v fazi pridobivanja serijske številke, druga nit čaka na odgovor.
+Na primer:
+•
+
+Nit1 zahteva serijsko številko s sporočilom "GET".
+
+•
+
+Server niti1 odgovori s serijsko številko po zgornjih navodilih.
+
+•
+
+Nit2 zahteva serijsko številko s sporočilom "GET".
+
+•
+
+Server mora počakati na Nit1, da odgovori s sporočilom PREJETO ........
+
+•
+
+Nit1 odgovori "PREJETO ......."
+
+•
+
+Server niti2 odgovor z naslednjo serijsko številko po navodilih.
+
+•
+
+...
+1
+
+
