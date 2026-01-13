@@ -42,9 +42,9 @@ unsigned int crc32(const char *data, size_t length) {
 
 /* ===================== GLOBAL SYNC ===================== */
 
-unsigned int global_seq = 0;
-int get_in_progress = 0;
-unsigned int thread_counter = 0;
+unsigned int global_seq = 0;        // global serial counter
+int get_in_progress = 0;            // is a GET currently being processed
+unsigned int thread_counter = 0;    // unique thread ID
 
 pthread_mutex_t get_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t  get_cond  = PTHREAD_COND_INITIALIZER;
@@ -56,14 +56,17 @@ void *connection_handler(void *socket_desc) {
     int sock = *(int *)socket_desc;
     free(socket_desc);
 
+    unsigned int thread_id;
+
     pthread_mutex_lock(&get_mutex);
-    unsigned int thread_id = ++thread_counter;
+    thread_id = ++thread_counter; // assign unique thread ID
     pthread_mutex_unlock(&get_mutex);
+
+    printf("[Thread #%u] Handling client\n", thread_id);
 
     char buf[1024];
 
     while (1) {
-
         bzero(buf, sizeof(buf));
         int n = recv(sock, buf, sizeof(buf) - 1, 0);
         if (n <= 0) {
@@ -75,7 +78,6 @@ void *connection_handler(void *socket_desc) {
         printf("[Thread #%u] Received: %s\n", thread_id, buf);
 
         /* ===================== GET ===================== */
-
         if (strncmp(buf, "GET", 3) == 0 &&
            (buf[3] == '\n' || buf[3] == '\0')) {
 
@@ -138,11 +140,11 @@ void *connection_handler(void *socket_desc) {
         }
 
         /* ===================== OTHER COMMANDS ===================== */
-
         send(sock, "NEPREPOZNAVEN UKAZ", 18, 0);
     }
 
     close(sock);
+    printf("[Thread #%u] Closed connection\n", thread_id);
     return NULL;
 }
 
@@ -183,6 +185,16 @@ int main() {
 
         pthread_create(&tid, NULL, connection_handler, new_sock);
         pthread_detach(tid);
+
+        /* Print info about new connection */
+        pthread_mutex_lock(&get_mutex);
+        unsigned int current_thread_id = thread_counter + 1; // next thread id
+        pthread_mutex_unlock(&get_mutex);
+
+        printf("[Thread #%u] New client connected from %s:%d\n",
+               current_thread_id,
+               inet_ntoa(client.sin_addr),
+               ntohs(client.sin_port));
     }
 
     close(socket_desc);

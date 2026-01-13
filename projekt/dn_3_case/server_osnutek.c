@@ -129,7 +129,7 @@ void *connection_handler(void *socket_desc)
     while (1) {
 
        n = recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &fromlen);
-    if(n < 0) perror("recvfrom");
+    	if(n < 0) perror("recvfrom");
 
         printf("Received a datagram: %s\n", buf);
 
@@ -217,5 +217,3 @@ void *connection_handler(void *socket_desc)
 	return 0;
 }
 
-
-// pthread_mutex_unlock(&mutex1);
