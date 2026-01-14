@@ -42,9 +42,9 @@ unsigned int crc32(const char *data, size_t length) {
 
 /* ===================== GLOBAL SYNC ===================== */
 
-unsigned int global_seq = 0;        // global serial counter
-int get_in_progress = 0;            // is a GET currently being processed
-unsigned int thread_counter = 0;    // unique thread ID
+unsigned int global_seq = 0;
+int get_in_progress = 0;
+unsigned int thread_counter = 0;
 
 pthread_mutex_t get_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t  get_cond  = PTHREAD_COND_INITIALIZER;
@@ -59,7 +59,7 @@ void *connection_handler(void *socket_desc) {
     unsigned int thread_id;
 
     pthread_mutex_lock(&get_mutex);
-    thread_id = ++thread_counter; // assign unique thread ID
+    thread_id = ++thread_counter;
     pthread_mutex_unlock(&get_mutex);
 
     printf("[Thread #%u] Handling client\n", thread_id);
@@ -77,11 +77,17 @@ void *connection_handler(void *socket_desc) {
         buf[n] = '\0';
         printf("[Thread #%u] Received: %s\n", thread_id, buf);
 
+        /* ===================== SERVER EXIT ON X ===================== */
+        if (strncmp(buf, "X", 1) == 0 && (buf[1] == '\n' || buf[1] == '\0')) {
+            printf("[Thread #%u] Shutdown command received. Exiting server.\n", thread_id);
+            close(sock);
+            exit(0);   // terminate entire server process
+        }
+
         /* ===================== GET ===================== */
         if (strncmp(buf, "GET", 3) == 0 &&
            (buf[3] == '\n' || buf[3] == '\0')) {
 
-            /* ---- WAIT FOR TURN ---- */
             pthread_mutex_lock(&get_mutex);
             while (get_in_progress)
                 pthread_cond_wait(&get_cond, &get_mutex);
@@ -92,7 +98,6 @@ void *connection_handler(void *socket_desc) {
 
             printf("[Thread #%u] Processing GET (seq: %u)\n", thread_id, my_seq);
 
-            /* ---- GENERATE UUID ---- */
             char *uuid = genUUID();
             unsigned int crc = crc32(uuid, strlen(uuid));
 
@@ -105,7 +110,6 @@ void *connection_handler(void *socket_desc) {
 
             sleep(5);
 
-            /* ---- WAIT FOR PREJETO ---- */
             bzero(buf, sizeof(buf));
             n = recv(sock, buf, sizeof(buf) - 1, 0);
             if (n <= 0) break;
@@ -125,7 +129,8 @@ void *connection_handler(void *socket_desc) {
 
                 if (crc_part && strcmp(crc_part, expected_crc) == 0) {
                     global_seq++;
-                    printf("[Thread #%u] CRC OK → counter = %u\n", thread_id, global_seq);
+                    printf("[Thread #%u] CRC OK → counter = %u\n",
+                           thread_id, global_seq);
                 } else {
                     send(sock, "NAPAKA 4900B4DB", 15, 0);
                     printf("[Thread #%u] CRC ERROR\n", thread_id);
@@ -186,9 +191,8 @@ int main() {
         pthread_create(&tid, NULL, connection_handler, new_sock);
         pthread_detach(tid);
 
-        /* Print info about new connection */
         pthread_mutex_lock(&get_mutex);
-        unsigned int current_thread_id = thread_counter + 1; // next thread id
+        unsigned int current_thread_id = thread_counter + 1;
         pthread_mutex_unlock(&get_mutex);
 
         printf("[Thread #%u] New client connected from %s:%d\n",
