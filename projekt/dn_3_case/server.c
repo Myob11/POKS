@@ -77,16 +77,16 @@ void *connection_handler(void *socket_desc) {
         buf[n] = '\0';
         printf("[Thread #%u] Received: %s\n", thread_id, buf);
 
-        /* ===================== SERVER EXIT ON X ===================== */
+        /* ===================== SERVER EXIT ===================== */
         if (strncmp(buf, "X", 1) == 0 && (buf[1] == '\n' || buf[1] == '\0')) {
-            printf("[Thread #%u] Shutdown command received. Exiting server.\n", thread_id);
+            printf("[Thread #%u] Shutdown command received\n", thread_id);
             close(sock);
-            exit(0);   // terminate entire server process
+            exit(0);
         }
 
         /* ===================== GET ===================== */
         if (strncmp(buf, "GET", 3) == 0 &&
-           (buf[3] == '\n' || buf[3] == '\0')) {
+            (buf[3] == '\n' || buf[3] == '\0')) {
 
             pthread_mutex_lock(&get_mutex);
             while (get_in_progress)
@@ -96,7 +96,8 @@ void *connection_handler(void *socket_desc) {
             unsigned int my_seq = global_seq + 1;
             pthread_mutex_unlock(&get_mutex);
 
-            printf("[Thread #%u] Processing GET (seq: %u)\n", thread_id, my_seq);
+            printf("[Thread #%u] Processing GET (seq: %u)\n",
+                   thread_id, my_seq);
 
             char *uuid = genUUID();
             unsigned int crc = crc32(uuid, strlen(uuid));
@@ -110,9 +111,17 @@ void *connection_handler(void *socket_desc) {
 
             sleep(5);
 
+            /* ===== wait for PREJETO ===== */
+
             bzero(buf, sizeof(buf));
             n = recv(sock, buf, sizeof(buf) - 1, 0);
-            if (n <= 0) break;
+            if (n <= 0) {
+                pthread_mutex_lock(&get_mutex);
+                get_in_progress = 0;
+                pthread_cond_signal(&get_cond);
+                pthread_mutex_unlock(&get_mutex);
+                break;
+            }
 
             buf[n] = '\0';
             printf("[Thread #%u] Received: %s\n", thread_id, buf);
@@ -128,18 +137,39 @@ void *connection_handler(void *socket_desc) {
                 pthread_mutex_lock(&get_mutex);
 
                 if (crc_part && strcmp(crc_part, expected_crc) == 0) {
+
                     global_seq++;
                     printf("[Thread #%u] CRC OK → counter = %u\n",
                            thread_id, global_seq);
+
                 } else {
-                    send(sock, "NAPAKA 4900B4DB", 15, 0);
-                    printf("[Thread #%u] CRC ERROR\n", thread_id);
+
+                    char error_msg[128];
+                    snprintf(error_msg, sizeof(error_msg),
+                             "NAPAKA %s %s",
+                             crc_part ? crc_part : "????????",
+                             expected_crc);
+
+                    send(sock, error_msg, strlen(error_msg), 0);
+
+                    printf("[Thread #%u] CRC ERROR (got=%s expected=%s)\n",
+                           thread_id,
+                           crc_part ? crc_part : "NULL",
+                           expected_crc);
                 }
 
                 get_in_progress = 0;
                 pthread_cond_signal(&get_cond);
                 pthread_mutex_unlock(&get_mutex);
+
+                continue;
             }
+
+            /* unexpected reply */
+            pthread_mutex_lock(&get_mutex);
+            get_in_progress = 0;
+            pthread_cond_signal(&get_cond);
+            pthread_mutex_unlock(&get_mutex);
 
             continue;
         }
@@ -155,7 +185,7 @@ void *connection_handler(void *socket_desc) {
 
 /* ===================== MAIN ===================== */
 
-int main() {
+int main(void) {
 
     srand(time(NULL));
 
@@ -191,12 +221,7 @@ int main() {
         pthread_create(&tid, NULL, connection_handler, new_sock);
         pthread_detach(tid);
 
-        pthread_mutex_lock(&get_mutex);
-        unsigned int current_thread_id = thread_counter + 1;
-        pthread_mutex_unlock(&get_mutex);
-
-        printf("[Thread #%u] New client connected from %s:%d\n",
-               current_thread_id,
+        printf("[Main] New client from %s:%d\n",
                inet_ntoa(client.sin_addr),
                ntohs(client.sin_port));
     }
